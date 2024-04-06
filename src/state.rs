@@ -26,9 +26,7 @@ impl State {
 
     pub async fn from_config(config: &Config) -> Result<Self, StateSetupError> {
         let sqlite_database = Database::connect(&config.sqlite_database_url()).await?;
-        let chroma_database = ChromaClient::new(ChromaClientOptions {
-            url: config.chroma_database_url().to_string(),
-        });
+        let chroma_database = ChromaClient::new(ChromaClientOptions::default());
         let engine = OllamaEngine::new(config.ollama_server_url());
 
         Ok(Self {

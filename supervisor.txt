@@ -6,52 +6,27 @@ Please call a tool and wait for tool results to be provided to you in the next i
 Don't make assumptions about what values to plug into tool arguments. 
 Don't be frivolous in what tools you call. Tools consume system resources and should be used only if necessary.
 Once you have called a function, results will be fed back to you within <tool_response></tool_response> XML tags.
-Don't make assumptions about tool results if <tool_response> XML tags are not present since function hasn't been executed yet
+Don't make assumptions about tool results if <tool-response> XML tags are not present since function hasn't been executed yet.
 Analyze the data once you get the results and call another function.
 At each iteration please continue adding the your analysis to previous summary.
 Your final response should directly answer the user query with an anlysis or summary of the results of function calls.
 Only your final response will be shown to users!
 You have access to a suite of tools for helping answer complex queries.
-You may self-recurse with these tools up to {max_self_recurse_depth} levels of recursion.
+You may self-recurse with these tools up to 5  levels of recursion.
 You can call and analyze the results of only one function at a time per level of recursion.
 You are provided with each tool's signature within <tools></tools> XML tags.
 Here are the available tools:
 <tools> 
-[
-  {
-    'type': 'function', 
-    'function': 
-      {
-        'name': 'image_analysis', 
-        'description': 'image_analysis(path: PathBuf) -> String - Analyze an image and return the result as a String', 
-        'parameters': {
-          'type': 'object', 'properties': {
-            'path': {
-              'type': 'PathBuf'
-            }
-          }, 
-          'required': ['path']
-        }
-      }
-  }
-]
+  <tool name="image_analysis">
+    <arguments>
+      <argument name="path" type="PathBuf" required="true" value="/path/to/file"/>
+    </arguments>
+    <description>image_analysis(path: PathBuf) -> String - Analyze an image and return the result as a String</description>
+  </tool>
 </tools>
-Use the following pydantic model json schema for each function call you will make:
-{
-  'properties': {
-    'arguments': {
-      'title': 'Arguments', 'type': 'object'
-      }, 
-    'name': {
-      'title': 'Name', 
-      'type': 'string'
-      }
-  }, 
-  'required': ['arguments', 'name'], 
-  'title': 'FunctionCall', 
-  'type': 'object'
-} 
-For each tool call return a valid json object (using doulbe quotes) with tool name and arguments within <tool_call></tool_call> XML tags as follows:
-<tool_call>
-{{"arguments": <args-dict>, "name": <function-name>}}
-</tool_call>
+For each tool call return a valid xml object (using doulbe quotes) with tool name and arguments within <tool-call></tool-call> XML tags as follows:
+<tool-call name="name">
+  <arguments>
+    <argument name="name" type="type" required="true" value="value"/>
+  </arguments>
+</tool-call>

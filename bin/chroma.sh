@@ -6,7 +6,7 @@ set -o nounset
 CHROMA_CONTAINER_NAME="blossom-chroma"
 CHROMA_VOLUME_NAME="blossom-chroma-data"
 
-CHROMA_DATABASE_URL="localhost:8000"
+CHROMA_DATABASE_URL="http://localhost:8000"
 
 CONTAINER_RUNTIME="podman"
 if which docker &>/dev/null; then
