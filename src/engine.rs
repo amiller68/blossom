@@ -7,16 +7,15 @@ use futures::StreamExt;
 use image::{io::Reader as ImageReader, ImageFormat};
 use ollama_rs::{
     generation::{
-        chat::{request::ChatMessageRequest, ChatMessage, ChatMessageResponse, MessageRole},
+        chat::{request::ChatMessageRequest, ChatMessage, MessageRole},
         completion::{request::GenerationRequest, GenerationResponseStream},
         images::Image,
-        options::GenerationOptions,
     },
     Ollama,
 };
 use url::Url;
 
-pub use ollama_rs::generation::completion::GenerationContext;
+
 
 lazy_static::lazy_static! {
     static ref SUPERVISOR_SYSTEM_PROMPT: String = include_str!("../supervisor.txt").to_string();

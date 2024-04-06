@@ -63,7 +63,7 @@ async fn main() {
         }
         Command::Embed => {
             let input = args[2].clone();
-            let input_str = input.clone();
+            let _input_str = input.clone();
             let path = PathBuf::from(input.clone());
             let chroma_client = state.chroma_database();
             let chroma_collection = chroma_client
@@ -83,7 +83,7 @@ async fn main() {
                 // Map the response to f32
                 let response = response
                     .iter()
-                    .map(|x| x.clone() as f32)
+                    .map(|x| *x as f32)
                     .collect::<Vec<f32>>();
                 let len = ids.len();
                 let i = input.clone();

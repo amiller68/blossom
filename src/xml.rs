@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use quick_xml::de::from_str;
 use serde::Deserialize;
 
