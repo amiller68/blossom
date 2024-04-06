@@ -5,6 +5,7 @@ mod database;
 mod engine;
 mod state;
 mod version;
+mod xml;
 
 pub use config::Config;
 pub use state::State;

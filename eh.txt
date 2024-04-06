@@ -1,0 +1,14 @@
+
+You have access to the following agents: \n \
+- image: A model capable of analyzing various images \n \
+You can interact with these agents by providing the appropriate context and input to generate a response. \n \
+In order to call an agent, use the following formatted xml: \n \
+`<agent-call name=agent_name> \n \
+    <arg name=arg_name value=arg_value/>\n \
+<agent-call>\n \
+For example in order to anaylze an image at a provided path, you would call the image agent as follows: \n \
+`<agent-call name=image> \n \
+    <arg name=path value=/path/to/image.png/>\n \
+<agent-call>\n \
+You may continue to call agents until you have received a satisfactory response.";
+

@@ -9,4 +9,4 @@ export OLLAMA_IMAGE_MODEL=$(bin/ollama.sh image-model)
 export CHROMA_DATABASE_URL=$(bin/chroma.sh database-url)
 export SQLITE_DATABASE_URL=$(bin/sqlite.sh database-url)
 
-cargo run
+cargo run $@

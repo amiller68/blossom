@@ -42,3 +42,7 @@ tracing-subscriber = { version = "^0.3", default-features = false, features = [
 ] }
 tokio-util = "0.7.10"
 chromadb = "0.4.4"
+image = "0.25.1"
+base64 = "0.22.0"
+quick-xml = { version = "0.31.0", features = ["overlapped-lists", "serialize"] }
+lazy_static = "1.4.0"
