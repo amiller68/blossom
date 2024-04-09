@@ -15,8 +15,6 @@ use ollama_rs::{
 };
 use url::Url;
 
-
-
 lazy_static::lazy_static! {
     static ref SUPERVISOR_SYSTEM_PROMPT: String = include_str!("../supervisor.txt").to_string();
     static ref CONVERSATIONAL_SYSTEM_PROMPT: String = include_str!("../conversational.txt").to_string();
