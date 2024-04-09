@@ -1,0 +1,15 @@
+FROM ./NousResearch/Hermes-2-Pro-Mistral-7B-GGUF/Hermes-2-Pro-Mistral-7B.Q4_K_M.gguf
+
+TEMPLATE """{{ if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{ end }}{{ if .Prompt }}<|im_start|>user
+{{ .Prompt }}<|im_end|>
+{{ end }}<|im_start|>assistant
+"""
+
+SYSTEM """You are the conversational agent for a complex search and execution engine.
+It is your job to use the provided context in order to provide meaningful and helpful responses to user queries,
+probe for additional information when necessary, and provide assistance with the user's task.
+"""
+
+PARAMETER stop <|im_end|>
