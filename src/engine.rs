@@ -24,34 +24,44 @@ lazy_static::lazy_static! {
 pub struct OllamaEngine {
     // model_map: HashMap<String, String>,
     ollama: Ollama,
+
+    _supervisor_model: String,
+    conversational_model: String,
+    image_model: String,
+    embedding_model: String,
 }
 
 /// Mulitpuropse engine with access to various models
 impl OllamaEngine {
-    pub fn new(url: &Url) -> Self {
+    pub fn new(
+        url: &Url,
+        _supervisor_model: String,
+        conversational_model: String,
+        image_model: String,
+        embedding_model: String,
+    ) -> Self {
         let scheme = url.scheme();
         let host = url.host_str().unwrap_or("localhost");
         let port = url.port().unwrap_or(11434);
         let host = format!("{}://{}", scheme, host);
         Self {
             ollama: Ollama::new(host, port),
+
+            _supervisor_model,
+            conversational_model,
+            image_model,
+            embedding_model,
         }
     }
 
     pub async fn embed(&self, input: &str) -> Result<Vec<f64>, OllamaEngineError> {
-        tracing::info!("embedding input: {}", input);
         let response = self
-            .generate_embeddings(
-                "blossom-conversational".to_string(),
-                input.to_string(),
-                None,
-            )
+            .generate_embeddings(self.embedding_model.clone(), input.to_string(), None)
             .await?;
         Ok(response.embeddings)
     }
 
     pub async fn respond(&self, input: &str) -> Result<String, OllamaEngineError> {
-        tracing::info!("responding to input: {}", input);
         // Build a new chat message request
         let system_prompt_message = ChatMessage::new(
             MessageRole::System,
@@ -60,13 +70,12 @@ impl OllamaEngine {
         let chat_message = ChatMessage::new(MessageRole::User, input.to_string());
 
         let request = ChatMessageRequest::new(
-            "blossom-conversational".to_string(),
+            self.conversational_model.clone(),
             vec![system_prompt_message, chat_message],
         );
 
         let chat_message_response = self.send_chat_messages(request).await?;
         let response = chat_message_response.message.unwrap();
-        tracing::info!("response: {}", response.content);
         Ok(response.content)
     }
 
@@ -86,7 +95,7 @@ impl OllamaEngine {
 
         let image = Image::from_base64(&base64_image);
         let request = GenerationRequest::new(
-            "blossom-image".to_string(),
+            self.image_model.clone(),
             "Please analyze this image".to_string(),
         )
         .add_image(image);

@@ -17,6 +17,10 @@ function database-url {
 	echo ${CHROMA_DATABASE_URL}
 }
 
+function collection-name {
+	echo "blossom-embeddings"
+}
+
 function run {
 	start-chroma-container
 }

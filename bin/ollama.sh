@@ -23,6 +23,9 @@ OLLAMA_SUPERVISOR_MODEL="blossom-supervisor"
 # Will handle conversation and dialogue
 OLLAMA_CONVERSATIONAL_MODEL="blossom-conversational"
 
+# Embedding
+OLLAMA_EMBEDDING_MODEL="blossom-embedding"
+
 # Image
 # Will handle image processing
 OLLAMA_IMAGE_MODEL="blossom-image"
@@ -46,6 +49,10 @@ function image-model {
 	echo ${OLLAMA_IMAGE_MODEL}
 }
 
+function embedding-model {
+	echo ${OLLAMA_EMBEDDING_MODEL}
+}
+
 function server-url {
 	echo ${OLLAMA_SERVER_URL}
 }
@@ -57,7 +64,6 @@ function run {
 # Model Building Utils
 
 function build-models {
-	# TODO: add the other models here
 	# Pull the Nous-hermes-2-pro model
 	pull-model ${NOUS_HERMES_2_PRO_REPO} ${NOUS_HERMES_2_FILE}
 
@@ -67,6 +73,8 @@ function build-models {
 	create-ollama-model ${OLLAMA_CONVERSATIONAL_MODEL}
 
 	create-ollama-model ${OLLAMA_IMAGE_MODEL}
+
+	create-ollama-model ${OLLAMA_EMBEDDING_MODEL}
 }
 
 function create-ollama-model {

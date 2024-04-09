@@ -70,7 +70,6 @@ async fn main() {
 
 async fn handle_input(input: String, state: &State) {
     let engine = state.engine();
-    let chroma = state.chroma_database();
 
     // Split off the command from the input
     let command_str = input.split_whitespace().next().unwrap_or("");
@@ -105,7 +104,7 @@ async fn handle_input(input: String, state: &State) {
                 .skip(1)
                 .collect::<Vec<&str>>()
                 .join(" ");
-            let collection = chroma.create_collection("testing", None, true).unwrap();
+            let collection = state.chroma_collection();
 
             let query_embedding = engine.embed(&input).await.unwrap();
             // Map the response to f32
@@ -135,10 +134,7 @@ async fn handle_input(input: String, state: &State) {
 
 async fn embed_path(path: PathBuf, state: &State) {
     let engine = state.engine();
-    let chroma_client = state.chroma_database();
-    let chroma_collection = chroma_client
-        .create_collection("testing", None, true)
-        .unwrap();
+    let chroma_collection = state.chroma_collection();
 
     // If the path is a directory, panic
     if path.is_dir() {
@@ -164,7 +160,6 @@ async fn embed_path(path: PathBuf, state: &State) {
     let mut batch_embeddings = Vec::new();
     for (id_index, paragraph) in paragraphs.into_iter().enumerate() {
         let response = engine.embed(paragraph).await.unwrap();
-        println!("embedding:  {:?}", response);
         // Map the response to f32
         let response = response.iter().map(|x| *x as f32).collect::<Vec<f32>>();
         let i = path.clone();
@@ -180,8 +175,7 @@ async fn embed_path(path: PathBuf, state: &State) {
                 metadatas: None,
                 documents: Some(batch_documents.clone()),
             };
-            let value = chroma_collection.upsert(collection_entries, None).unwrap();
-            println!("{:?}", value);
+            chroma_collection.upsert(collection_entries, None).unwrap();
             batch_ids.clear();
             batch_documents.clear();
             batch_embeddings.clear();

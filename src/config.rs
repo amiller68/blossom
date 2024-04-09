@@ -7,13 +7,17 @@ use url::Url;
 pub struct Config {
     // Database Config
     sqlite_database_url: Url,
+
+    // Chroma Config
     chroma_database_url: Url,
+    chroma_collection_name: String,
 
     // Ollama Config
     ollama_server_url: Url,
     ollama_supervisor_model: String,
     ollama_conversational_model: String,
     ollama_image_model: String,
+    ollama_embedding_model: String,
 }
 
 // TODO: arg parsing
@@ -40,6 +44,13 @@ impl Config {
             }
         };
         let chroma_database_url = Url::parse(&chroma_database_url_str)?;
+        let chroma_collection_name = match env::var("CHROMA_COLLECTION_NAME") {
+            Ok(name) => name,
+            Err(_) => {
+                tracing::warn!("No CHROMA_COLLECTION_NAME found in .env, using default");
+                "blossom-embeddings".to_string()
+            }
+        };
 
         let ollama_server_url_str = match env::var("OLLAMA_SERVER_URL") {
             Ok(url) => url,
@@ -74,13 +85,23 @@ impl Config {
             }
         };
 
+        let ollama_embedding_model = match env::var("OLLAMA_EMBEDDING_MODEL") {
+            Ok(model) => model,
+            Err(_) => {
+                tracing::warn!("No OLLAMA_EMBEDDING_MODEL found in .env, using default");
+                "blossom-embedding".to_string()
+            }
+        };
+
         Ok(Config {
             sqlite_database_url,
             chroma_database_url,
+            chroma_collection_name,
             ollama_server_url,
             ollama_supervisor_model,
             ollama_conversational_model,
             ollama_image_model,
+            ollama_embedding_model,
         })
     }
 
@@ -92,8 +113,28 @@ impl Config {
         &self.chroma_database_url
     }
 
+    pub fn chroma_collection_name(&self) -> &str {
+        &self.chroma_collection_name
+    }
+
     pub fn ollama_server_url(&self) -> &Url {
         &self.ollama_server_url
+    }
+
+    pub fn ollama_supervisor_model(&self) -> &str {
+        &self.ollama_supervisor_model
+    }
+
+    pub fn ollama_conversational_model(&self) -> &str {
+        &self.ollama_conversational_model
+    }
+
+    pub fn ollama_image_model(&self) -> &str {
+        &self.ollama_image_model
+    }
+
+    pub fn ollama_embedding_model(&self) -> &str {
+        &self.ollama_embedding_model
     }
 }
 
