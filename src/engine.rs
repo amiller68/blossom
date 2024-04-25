@@ -2,14 +2,16 @@ use std::io::Cursor;
 use std::ops::Deref;
 use std::path::PathBuf;
 
+use crate::tool_call::ToolCall;
 use base64::prelude::*;
 use futures::StreamExt;
 use image::{io::Reader as ImageReader, ImageFormat};
 use ollama_rs::{
     generation::{
         chat::{request::ChatMessageRequest, ChatMessage, MessageRole},
-        completion::{request::GenerationRequest, GenerationResponseStream},
+        completion::{request::GenerationRequest, GenerationContext, GenerationResponseStream},
         images::Image,
+        options::GenerationOptions,
     },
     Ollama,
 };
@@ -25,7 +27,7 @@ pub struct OllamaEngine {
     // model_map: HashMap<String, String>,
     ollama: Ollama,
 
-    _supervisor_model: String,
+    supervisor_model: String,
     conversational_model: String,
     image_model: String,
     embedding_model: String,
@@ -35,7 +37,7 @@ pub struct OllamaEngine {
 impl OllamaEngine {
     pub fn new(
         url: &Url,
-        _supervisor_model: String,
+        supervisor_model: String,
         conversational_model: String,
         image_model: String,
         embedding_model: String,
@@ -47,7 +49,7 @@ impl OllamaEngine {
         Self {
             ollama: Ollama::new(host, port),
 
-            _supervisor_model,
+            supervisor_model,
             conversational_model,
             image_model,
             embedding_model,
@@ -61,22 +63,30 @@ impl OllamaEngine {
         Ok(response.embeddings)
     }
 
-    pub async fn respond(&self, input: &str) -> Result<String, OllamaEngineError> {
+    pub async fn handle(&self, input: &str) -> Result<ToolCall, OllamaEngineError> {
         // Build a new chat message request
-        let system_prompt_message = ChatMessage::new(
-            MessageRole::System,
-            CONVERSATIONAL_SYSTEM_PROMPT.to_string(),
-        );
+        let system_prompt_message =
+            ChatMessage::new(MessageRole::System, SUPERVISOR_SYSTEM_PROMPT.to_string());
         let chat_message = ChatMessage::new(MessageRole::User, input.to_string());
-
         let request = ChatMessageRequest::new(
-            self.conversational_model.clone(),
+            self.supervisor_model.clone(),
             vec![system_prompt_message, chat_message],
         );
 
         let chat_message_response = self.send_chat_messages(request).await?;
-        let response = chat_message_response.message.unwrap();
-        Ok(response.content)
+        let response = match chat_message_response.message {
+            None => return Err(OllamaEngineError::NoMessageError),
+            Some(response) => response,
+        };
+        let tool_call = match ToolCall::try_from(response.content.as_str()) {
+            Ok(tool_call) => tool_call,
+            Err(e) => {
+                tracing::error!("Received unparsable tool call: {}", response.content);
+                tracing::error!("Failed to parse tool call: {}", e);
+                return Err(OllamaEngineError::ToolCallError(e));
+            }
+        };
+        Ok(tool_call)
     }
 
     // TODO: Streaming
@@ -85,12 +95,11 @@ impl OllamaEngine {
         // Eventually just make this a URL
         image_path: &PathBuf,
     ) -> Result<String, OllamaEngineError> {
-        tracing::info!("analysing image path: {:?}", image_path);
         let image = ImageReader::open(image_path).unwrap().decode().unwrap();
         let mut buf = Vec::new();
         image
             .write_to(&mut Cursor::new(&mut buf), ImageFormat::Png)
-            .unwrap();
+            .map_err(|e| OllamaEngineError::DefaultError(e.into()))?;
         let base64_image = BASE64_STANDARD.encode(&buf);
 
         let image = Image::from_base64(&base64_image);
@@ -112,56 +121,21 @@ impl OllamaEngine {
         Ok(response)
     }
 
-    /*
-        pub async fn complete(
-            &self,
-            input: &str,
-            context: Option<GenerationContext>,
-        ) -> Result<(String, Option<GenerationContext>), OllamaEngineError> {
-            let input = input.trim();
-            let options = GenerationOptions::default();
-            let options = options.stop(vec!["<|im_end|>".to_string()]);
-
-            let mut request =
-                GenerationRequest::new("blossom-conversational".into(), input.to_string())
-                    .options(options);
-            if let Some(context) = context.clone() {
-                request = request.clone().context(context);
-            }
-            let mut stream: GenerationResponseStream =
-                self.generate_stream(request.clone()).await.unwrap();
-            let mut response_buffer = Vec::new();
-            let mut next_context = None;
-            while let Some(Ok(response)) = stream.next().await {
-                for ele in response.clone() {
-                    response_buffer.extend(ele.response.as_bytes());
-
-                    if let Some(final_data) = ele.final_data {
-                        next_context = Some(final_data.context);
-                    }
-                }
-            }
-            let response = String::from_utf8(response_buffer).unwrap();
-            Ok((response, next_context))
+    pub async fn converse(
+        &self,
+        input: &str,
+        context: Option<GenerationContext>,
+    ) -> Result<GenerationResponseStream, OllamaEngineError> {
+        let input = input.trim();
+        let options = GenerationOptions::default();
+        let request = GenerationRequest::new(self.conversational_model.clone(), input.to_string())
+            .options(options);
+        if let Some(context) = context.clone() {
+            request.clone().context(context);
         }
-
-        pub async fn complete_stream(
-            &self,
-            input: &str,
-            context: Option<GenerationContext>,
-        ) -> Result<GenerationResponseStream, OllamaEngineError> {
-            let input = input.trim();
-            let options = GenerationOptions::default();
-            let options = options.stop(vec!["<|im_end|>".to_string()]);
-            let request =
-                GenerationRequest::new("nous-hermes-2-pro".into(), input.to_string()).options(options);
-            if let Some(context) = context.clone() {
-                request.clone().context(context);
-            }
-            let stream: GenerationResponseStream = self.generate_stream(request.clone()).await.unwrap();
-            Ok(stream)
-        }
-    */
+        let stream: GenerationResponseStream = self.generate_stream(request.clone()).await.unwrap();
+        Ok(stream)
+    }
 }
 
 impl Deref for OllamaEngine {
@@ -175,6 +149,12 @@ impl Deref for OllamaEngine {
 pub enum OllamaEngineError {
     #[error("default error: {0}")]
     DefaultError(anyhow::Error),
+    #[error("tool call error: {0}")]
+    ToolCallError(#[from] crate::tool_call::ToolCallError),
     #[error("ollama error: {0}")]
     Ollam(#[from] ollama_rs::error::OllamaError),
+    #[error("image error: {0}")]
+    ImageError(#[from] image::ImageError),
+    #[error("no message error")]
+    NoMessageError,
 }

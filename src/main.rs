@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
 use chromadb::v1::collection::{CollectionEntries, QueryOptions, QueryResult};
+use tokio::io::{stdout, AsyncWriteExt};
+use tokio_stream::StreamExt;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{EnvFilter, Layer};
@@ -63,7 +65,6 @@ async fn main() {
             break;
         }
 
-        println!("Bot: {:?}", input);
         handle_input(input.to_string(), &state).await;
     }
 }
@@ -76,8 +77,52 @@ async fn handle_input(input: String, state: &State) {
     let command = Command::from(command_str);
     match command {
         Command::Respond => {
-            let response = engine.respond(&input).await.unwrap();
-            println!("{:?}", response);
+            let tool_call = engine.handle(&input).await.unwrap();
+            tracing::info!("Tool call: {:?}", tool_call);
+            match tool_call.name() {
+                "image" => {
+                    // Check the # of arguments
+                    // Should be 1
+                    let args = tool_call.args();
+                    if args.len() != 1 {
+                        println!("Invalid number of arguments");
+                        return;
+                    }
+                    let path = args.first().unwrap();
+                    assert_eq!(path.name(), "path");
+                    assert_eq!(path.r#type(), "PathBuf");
+                    let path = path.value();
+                    let mut path = PathBuf::from(path);
+                    // Check if the path is a relative path
+                    println!("Rewriting to relative path");
+                    path = path.strip_prefix("/").unwrap().to_path_buf();
+                    let response = engine.image(&path).await.unwrap();
+                    println!("{:?}", response);
+                }
+                "converse" => {
+                    let args = tool_call.args();
+                    if args.len() != 1 {
+                        println!("Invalid number of arguments");
+                        return;
+                    }
+                    let input = args.first().unwrap();
+                    assert_eq!(input.name(), "input");
+                    assert_eq!(input.r#type(), "String");
+                    let input = input.value();
+                    let mut stdout = stdout();
+                    let mut stream = engine.converse(input, None).await.unwrap();
+                    while let Some(Ok(res)) = stream.next().await {
+                        for ele in res {
+                            stdout.write_all(ele.response.as_bytes()).await.unwrap();
+                            stdout.flush().await.unwrap();
+                        }
+                    }
+                    println!();
+                }
+                _ => {
+                    println!("Unknown tool call: {:?}", tool_call.name());
+                }
+            }
         }
         Command::Embed => {
             let paths = input.split_whitespace().skip(1);

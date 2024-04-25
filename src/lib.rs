@@ -4,11 +4,11 @@ mod config;
 mod database;
 mod engine;
 mod state;
+mod tool_call;
 mod version;
-mod xml;
-
 pub use config::Config;
 pub use state::State;
+pub use tool_call::ToolCall;
 
 /// Sets up system panics to use the tracing infrastructure to log reported issues. This doesn't
 /// prevent the panic from taking out the service but ensures that it and any available information

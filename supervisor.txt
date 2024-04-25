@@ -17,16 +17,16 @@ You can call and analyze the results of only one function at a time per level of
 You are provided with each tool's signature within <tools></tools> XML tags.
 Here are the available tools:
 <tools> 
-  <tool name="image_analysis">
-    <arguments>
-      <argument name="path" type="PathBuf" required="true" value="/path/to/file"/>
-    </arguments>
-    <description>image_analysis(path: PathBuf) -> String - Analyze an image and return the result as a String</description>
+  <tool name="image">
+    <description>image(path: PathBuf) -> String - Analyze an image and return the result as a String</description>
+    <argument name="path" type="PathBuf" required="true" value="/path/to/file"/>
+  </tool>
+  <tool name="converse">
+    <description>converse(input: &str) -> String - Continue a conversation based on input</description>
+    <argument name="input" type="String" required="true" value="input"/>
   </tool>
 </tools>
 For each tool call return a valid xml object (using doulbe quotes) with tool name and arguments within <tool-call></tool-call> XML tags as follows:
 <tool-call name="name">
-  <arguments>
-    <argument name="name" type="type" required="true" value="value"/>
-  </arguments>
+  <argument name="name" type="type" required="true" value="value"/>
 </tool-call>
