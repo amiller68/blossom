@@ -1,16 +1,11 @@
-mod chat;
-#[allow(dead_code)]
-mod config;
-#[allow(dead_code)]
+mod app;
 mod database;
-mod engine;
-mod state;
-mod tool_call;
-mod version;
-pub use chat::Chat;
-pub use config::Config;
-pub use state::State;
-pub use tool_call::ToolCall;
+
+use app::Version;
+
+pub mod agent;
+pub use app::{Config, State};
+pub use database::models::Chat as ChatModel;
 
 /// Sets up system panics to use the tracing infrastructure to log reported issues. This doesn't
 /// prevent the panic from taking out the service but ensures that it and any available information
@@ -30,7 +25,7 @@ pub fn register_panic_logger() {
 }
 
 pub fn report_version() {
-    let version = version::Version::new();
+    let version = Version::new();
     tracing::info!(
         build_profile = ?version.build_profile(),
         features = ?version.build_features(),

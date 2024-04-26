@@ -84,14 +84,20 @@ function create-ollama-model {
 	echo "Creating model ${MODEL_NAME} ..."
 
 	# Check if the model already exists
-	if ollama ls | grep ${MODEL_NAME} &>/dev/null; then
+	if exec-ollama ls | grep ${MODEL_NAME} &>/dev/null; then
 		# If FORCE either not SET and SET TO false, then return
 		if [ -z ${FORCE+x} ] || [ ${FORCE} == "false" ]; then
 			return
 		fi
 	fi
 
-	ollama create ${MODEL_NAME} -f ${MODEL_FILE_PATH}
+	exec-ollama create ${MODEL_NAME} -f ${MODEL_FILE_PATH}
+}
+
+function exec-ollama {
+	# TODO: do proper exec
+	# ${CONTAINER_RUNTIME} exec ${OLLAMA_CONTAINER_NAME} ollama $@
+	ollama $@
 }
 
 # TODO: document this
@@ -121,7 +127,7 @@ function start-ollama-container {
 }
 
 function ensure-ollama-container-exists {
-	docker pull ollama/ollama
+	${CONTAINER_RUNTIME} pull ollama/ollama
 	create-ollama-container
 }
 
@@ -136,12 +142,13 @@ function create-ollama-container {
 		--name ${OLLAMA_CONTAINER_NAME} \
 		--publish 11434:11434 \
 		--volume ${OLLAMA_VOLUME_NAME}:/root/.ollama \
+		--gpus=all \
 		--detach \
 		ollama/ollama
 }
 
 function clean() {
-	docker stop ${OLLAMA_CONTAINER_NAME} || true
+	${CONTAINER_RUNTIME} stop ${OLLAMA_CONTAINER_NAME} || true
 	${CONTAINER_RUNTIME} rm -fv ${OLLAMA_CONTAINER_NAME} || true
 	${CONTAINER_RUNTIME} volume rm -f ${OLLAMA_VOLUME_NAME} || true
 }

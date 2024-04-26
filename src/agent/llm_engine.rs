@@ -2,7 +2,6 @@ use std::io::Cursor;
 use std::ops::Deref;
 use std::path::PathBuf;
 
-use crate::tool_call::ToolCall;
 use base64::prelude::*;
 use futures::StreamExt;
 use image::{io::Reader as ImageReader, ImageFormat};
@@ -17,13 +16,15 @@ use ollama_rs::{
 };
 use url::Url;
 
+use super::tool_call::ToolCall;
+
 lazy_static::lazy_static! {
-    static ref SUPERVISOR_SYSTEM_PROMPT: String = include_str!("../supervisor.txt").to_string();
-    static ref CONVERSATIONAL_SYSTEM_PROMPT: String = include_str!("../conversational.txt").to_string();
+    static ref SUPERVISOR_SYSTEM_PROMPT: String = include_str!("../../supervisor.txt").to_string();
+    static ref CONVERSATIONAL_SYSTEM_PROMPT: String = include_str!("../../conversational.txt").to_string();
 }
 
 #[derive(Debug, Clone)]
-pub struct OllamaEngine {
+pub struct LlmEngine {
     // model_map: HashMap<String, String>,
     ollama: Ollama,
 
@@ -34,7 +35,7 @@ pub struct OllamaEngine {
 }
 
 /// Mulitpuropse engine with access to various models
-impl OllamaEngine {
+impl LlmEngine {
     pub fn new(
         url: &Url,
         supervisor_model: String,
@@ -56,14 +57,14 @@ impl OllamaEngine {
         }
     }
 
-    pub async fn embed(&self, input: &str) -> Result<Vec<f64>, OllamaEngineError> {
+    pub async fn embed(&self, input: &str) -> Result<Vec<f64>, LlmEngineError> {
         let response = self
             .generate_embeddings(self.embedding_model.clone(), input.to_string(), None)
             .await?;
         Ok(response.embeddings)
     }
 
-    pub async fn handle(&self, input: &str) -> Result<ToolCall, OllamaEngineError> {
+    pub async fn handle(&self, input: &str) -> Result<ToolCall, LlmEngineError> {
         // Build a new chat message request
         let system_prompt_message =
             ChatMessage::new(MessageRole::System, SUPERVISOR_SYSTEM_PROMPT.to_string());
@@ -75,7 +76,7 @@ impl OllamaEngine {
 
         let chat_message_response = self.send_chat_messages(request).await?;
         let response = match chat_message_response.message {
-            None => return Err(OllamaEngineError::NoMessageError),
+            None => return Err(LlmEngineError::NoMessageError),
             Some(response) => response,
         };
         let tool_call = match ToolCall::try_from(response.content.as_str()) {
@@ -83,7 +84,7 @@ impl OllamaEngine {
             Err(e) => {
                 tracing::error!("Received unparsable tool call: {}", response.content);
                 tracing::error!("Failed to parse tool call: {}", e);
-                return Err(OllamaEngineError::ToolCallError(e));
+                return Err(LlmEngineError::ToolCallError(e));
             }
         };
         Ok(tool_call)
@@ -94,12 +95,12 @@ impl OllamaEngine {
         &self,
         // Eventually just make this a URL
         image_path: &PathBuf,
-    ) -> Result<String, OllamaEngineError> {
+    ) -> Result<String, LlmEngineError> {
         let image = ImageReader::open(image_path).unwrap().decode().unwrap();
         let mut buf = Vec::new();
         image
             .write_to(&mut Cursor::new(&mut buf), ImageFormat::Png)
-            .map_err(|e| OllamaEngineError::DefaultError(e.into()))?;
+            .map_err(|e| LlmEngineError::DefaultError(e.into()))?;
         let base64_image = BASE64_STANDARD.encode(&buf);
 
         let image = Image::from_base64(&base64_image);
@@ -125,7 +126,7 @@ impl OllamaEngine {
         &self,
         input: &str,
         context: Option<GenerationContext>,
-    ) -> Result<GenerationResponseStream, OllamaEngineError> {
+    ) -> Result<GenerationResponseStream, LlmEngineError> {
         let input = input.trim();
         let options = GenerationOptions::default();
         let request = GenerationRequest::new(self.conversational_model.clone(), input.to_string())
@@ -138,7 +139,7 @@ impl OllamaEngine {
     }
 }
 
-impl Deref for OllamaEngine {
+impl Deref for LlmEngine {
     type Target = Ollama;
     fn deref(&self) -> &Self::Target {
         &self.ollama
@@ -146,11 +147,11 @@ impl Deref for OllamaEngine {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum OllamaEngineError {
+pub enum LlmEngineError {
     #[error("default error: {0}")]
     DefaultError(anyhow::Error),
     #[error("tool call error: {0}")]
-    ToolCallError(#[from] crate::tool_call::ToolCallError),
+    ToolCallError(#[from] super::tool_call::ToolCallError),
     #[error("ollama error: {0}")]
     Ollam(#[from] ollama_rs::error::OllamaError),
     #[error("image error: {0}")]
