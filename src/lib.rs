@@ -1,3 +1,4 @@
+mod chat;
 #[allow(dead_code)]
 mod config;
 #[allow(dead_code)]
@@ -6,6 +7,7 @@ mod engine;
 mod state;
 mod tool_call;
 mod version;
+pub use chat::Chat;
 pub use config::Config;
 pub use state::State;
 pub use tool_call::ToolCall;
@@ -37,3 +39,6 @@ pub fn report_version() {
         "service starting up"
     );
 }
+
+#[cfg(test)]
+mod tests;

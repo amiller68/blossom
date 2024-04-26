@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT id as \"id: DId\", name, created_at FROM chats\n            WHERE name = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id: DId",
+        "ordinal": 0,
+        "type_info": "Blob"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 2,
+        "type_info": "Datetime"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "9e19bfe08a0cf4b1f610233dbb113c5654c0a38a1740c85797595c575ffe4111"
+}

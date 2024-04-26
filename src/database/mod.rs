@@ -1,5 +1,6 @@
 pub mod models;
-pub mod sqlite;
+mod sqlite;
+mod types;
 
 use std::ops::Deref;
 

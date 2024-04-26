@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            INSERT INTO chats (name, created_at)\n            VALUES ($1, CURRENT_TIMESTAMP)\n            RETURNING id as 'id: DId'",
+  "describe": {
+    "columns": [
+      {
+        "name": "id: DId",
+        "ordinal": 0,
+        "type_info": "Blob"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "09caf0e742a44109b9a9aa840b62ffe80fdfb08a5b0c23b29582f027ef6d17d1"
+}

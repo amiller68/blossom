@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT CAST(X'ddc87dc94f246544aab29562ba2a128b' AS BLOB) as 'did: DId';",
+  "describe": {
+    "columns": [
+      {
+        "name": "did: DId",
+        "ordinal": 0,
+        "type_info": "Blob"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "3ca14d6ee941e279ad275212239aa5a2c8d0320e8466682a363cf211c29fea7f"
+}

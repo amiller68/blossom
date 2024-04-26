@@ -133,7 +133,7 @@ impl OllamaEngine {
         if let Some(context) = context.clone() {
             request.clone().context(context);
         }
-        let stream: GenerationResponseStream = self.generate_stream(request.clone()).await.unwrap();
+        let stream: GenerationResponseStream = self.generate_stream(request.clone()).await?;
         Ok(stream)
     }
 }

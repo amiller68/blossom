@@ -16,6 +16,7 @@ impl State {
         &self.sqlite_database
     }
 
+    // TODO: support for mutliple created collections
     pub fn chroma_collection(&self) -> &ChromaCollection {
         &self.chroma_collection
     }

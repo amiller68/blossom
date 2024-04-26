@@ -26,7 +26,13 @@ url = "2.5.0"
 wnfs = "0.2.1"
 object_store = "0.9.1"
 ollama-rs = { version = "0.1.8", features = ["stream"] }
-sqlx = { version = "0.7.4", features = ["runtime-tokio", "sqlite"] }
+sqlx = { version = "0.7.4", features = [
+  "runtime-tokio",
+  "sqlite",
+  "time",
+  "uuid",
+  "macros",
+] }
 tokio-stream = "0.1.15"
 tracing = "0.1.40"
 tracing-appender = "^0.2"
@@ -48,3 +54,5 @@ quick-xml = { version = "0.31.0", features = ["overlapped-lists", "serialize"] }
 lazy_static = "1.4.0"
 pico-args = "0.5.0"
 uuid = { version = "1.8.0", features = ["serde"] }
+names = "0.14.0"
+clap = { version = "4.5.4", features = ["derive"] }

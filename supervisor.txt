@@ -17,10 +17,6 @@ You can call and analyze the results of only one function at a time per level of
 You are provided with each tool's signature within <tools></tools> XML tags.
 Here are the available tools:
 <tools> 
-  <tool name="image">
-    <description>image(path: PathBuf) -> String - Analyze an image and return the result as a String</description>
-    <argument name="path" type="PathBuf" required="true" value="/path/to/file"/>
-  </tool>
   <tool name="converse">
     <description>converse(input: &str) -> String - Continue a conversation based on input</description>
     <argument name="input" type="String" required="true" value="input"/>
