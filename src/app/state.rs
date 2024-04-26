@@ -26,8 +26,8 @@ impl State {
 
     pub async fn from_config(config: &Config) -> Result<Self, StateSetupError> {
         let sqlite_database = Database::connect(config.sqlite_database_url()).await?;
-        let mut chroma_connection_options = ChromaClientOptions::default();
-        chroma_connection_options.url = config.chroma_database_url().to_string();
+        // TODO: Add Chroma configuration
+        let chroma_connection_options = ChromaClientOptions::default();
         let chroma_database = ChromaClient::new(chroma_connection_options);
 
         let llm_engine = LlmEngine::new(

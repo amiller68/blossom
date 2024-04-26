@@ -11,7 +11,7 @@ impl From<&str> for Command {
         // Get the first word
         let cmd = value.split_whitespace().next().unwrap();
 
-        match cmd {
+        match cmd.to_lowercase().as_str() {
             "/attach" => Command::Attach {
                 paths: value
                     .split_whitespace()

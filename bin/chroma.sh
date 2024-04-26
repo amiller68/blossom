@@ -33,7 +33,7 @@ function start-chroma-container {
 }
 
 function ensure-chroma-container-exists {
-	docker pull chromadb/chroma
+	${CONTAINER_RUNTIME} pull chromadb/chroma
 	create-chroma-container
 }
 

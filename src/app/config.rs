@@ -88,7 +88,6 @@ impl Config {
         Ok(Config {
             sqlite_database_url,
             chroma_database_url,
-            chroma_collection_name,
             ollama_server_url,
             ollama_supervisor_model,
             ollama_conversational_model,
@@ -103,10 +102,6 @@ impl Config {
 
     pub fn chroma_database_url(&self) -> &Url {
         &self.chroma_database_url
-    }
-
-    pub fn chroma_collection_name(&self) -> &str {
-        &self.chroma_collection_name
     }
 
     pub fn ollama_server_url(&self) -> &Url {
