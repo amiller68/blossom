@@ -10,7 +10,6 @@ pub struct Config {
 
     // Chroma Config
     chroma_database_url: Url,
-    chroma_collection_name: String,
 
     // Ollama Config
     ollama_server_url: Url,
@@ -44,13 +43,6 @@ impl Config {
             }
         };
         let chroma_database_url = Url::parse(&chroma_database_url_str)?;
-        let chroma_collection_name = match env::var("CHROMA_COLLECTION_NAME") {
-            Ok(name) => name,
-            Err(_) => {
-                tracing::warn!("No CHROMA_COLLECTION_NAME found in .env, using default");
-                "blossom-embeddings".to_string()
-            }
-        };
 
         let ollama_server_url_str = match env::var("OLLAMA_SERVER_URL") {
             Ok(url) => url,

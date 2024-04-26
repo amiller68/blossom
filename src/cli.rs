@@ -11,36 +11,16 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
-    // Add a new document to a collection
-    Add {
-        #[clap(long, short)]
-        path: PathBuf,
-        #[clap(long, short)]
-        collection: String,
-    },
     // Create a new chat
-    New,
+    New {
+        #[clap(long = "name", short = 'n')]
+        maybe_name: Option<String>,
+    },
     // List all chats
     Ls,
     // Continue a chat
     Cont {
         #[clap(long, short)]
         name: String,
-    },
-}
-
-#[derive(Subcommand, Debug)]
-pub enum AddCommand {
-    Image {
-        #[clap(long, short)]
-        path: PathBuf,
-        #[clap(long, short)]
-        collection: String,
-    },
-    Text {
-        #[clap(long, short)]
-        path: PathBuf,
-        #[clap(long, short)]
-        collection: String,
     },
 }
